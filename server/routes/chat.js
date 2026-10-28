@@ -25,21 +25,33 @@ router.post('/', auth, async (req, res) => {
     const historyDocs = await Chat.find({ user: req.userId }).sort({ createdAt: -1 }).limit(6);
     const history = historyDocs.reverse().map(doc => ({ role: doc.role, content: doc.content }));
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+    let reply = '';
+    const apiKey = process.env.OPENAI_API_KEY;
 
-    const reply = completion.choices[0].message.content;
+    if (!apiKey || apiKey.includes('your_openai_api_key')) {
+      reply = `Thank you for sharing that with me. I hear you, and it's completely valid to feel this way. Take a deep breath, and remember to take things one step at a time. \n\n💡 *(Note: Add your valid OPENAI_API_KEY in .env to enable live GPT-4o-mini responses.)*`;
+    } else {
+      try {
+        const openai = new OpenAI({ apiKey });
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+          max_tokens: 300,
+          temperature: 0.7,
+        });
+        reply = completion.choices[0].message.content;
+      } catch (aiErr) {
+        console.warn('OpenAI API call failed:', aiErr.message);
+        reply = `I'm here for you and listening. Even in challenging moments, remember to prioritize your peace and self-care. \n\n⚠️ *(AI service notice: ${aiErr.message})*`;
+      }
+    }
+
     await Chat.create({ user: req.userId, role: 'assistant', content: reply });
 
     res.json({ message: reply });
   } catch (err) {
     console.error('Chat error:', err.message);
-    res.status(500).json({ error: 'Failed to get AI response' });
+    res.status(500).json({ error: 'Failed to process message' });
   }
 });
 

@@ -70,7 +70,15 @@ export default function AssessmentPage() {
   const retake = () => { setResult(null); setAnswers({}); };
   const switchTest = (t) => { setTest(t); setAnswers({}); setResult(null); };
 
-  const formatAI = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  const formatAI = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/^###\s+(.+)$/gm, '<h4 class="assessment-section-title">$1</h4>')
+      .replace(/^\s*-\s+(.+)$/gm, '<li class="assessment-tip-item">$1</li>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br />')
+      .replace(/\n/g, '<br />');
+  };
 
   return (
     <div className="page fade-in">

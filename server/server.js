@@ -10,6 +10,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// ── Check MongoDB Connection Middleware for /api routes ──
+const mongoose = require('mongoose');
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      error: 'MongoDB is not connected. Please set a valid MONGODB_URI in your .env file (e.g. from MongoDB Atlas) and restart.'
+    });
+  }
+  next();
+});
+
 // ── API Routes ──
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/chat', require('./routes/chat'));
@@ -29,15 +40,14 @@ app.get('*', (req, res) => {
   }
 });
 
-// ── Initialize DB then start server ──
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`
+// ── Start server and connect to DB ──
+app.listen(PORT, () => {
+  console.log(`
   ╔═══════════════════════════════════════════════╗
   ║  🧠  MindCare AI — Server running             ║
-  ║     → http://localhost:${PORT}                    ║
-  ║     → React dev: http://localhost:5173         ║
+  ║     → Backend:  http://localhost:${PORT}          ║
+  ║     → Frontend: http://localhost:5173         ║
   ╚═══════════════════════════════════════════════╝
-    `);
-  });
+  `);
+  connectDB();
 });

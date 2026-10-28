@@ -37,6 +37,26 @@ router.post('/google', async (req, res) => {
   }
 });
 
+router.post('/demo', async (req, res) => {
+  try {
+    let user = await User.findOne({ email: 'demo@mindcare.ai' });
+    if (!user) {
+      user = await User.create({
+        googleId: 'demo-local-user-id',
+        email: 'demo@mindcare.ai',
+        name: 'Demo Explorer',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Demo'
+      });
+    }
+
+    const authToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'mindcare-secret-key', { expiresIn: '7d' });
+    res.json({ token: authToken, user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar } });
+  } catch (err) {
+    console.error('Demo Auth error:', err.message);
+    res.status(500).json({ error: 'Demo authentication failed' });
+  }
+});
+
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-__v');

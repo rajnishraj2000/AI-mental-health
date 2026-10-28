@@ -25,13 +25,19 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   };
 
+  const loginAsDemo = async () => {
+    const data = await api.post('/auth/demo');
+    localStorage.setItem('mindcare_token', data.token);
+    setUser(data.user);
+  };
+
   const logout = () => {
     localStorage.removeItem('mindcare_token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginAsDemo, logout }}>
       {children}
     </AuthContext.Provider>
   );
