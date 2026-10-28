@@ -67,7 +67,15 @@ export default function ChatPage() {
               <div key={i} className={`message ${m.role === 'user' ? 'user-message' : 'ai-message'} fade-in`}>
                 <div className="message-avatar">{m.role === 'user' ? '👤' : '🧠'}</div>
                 <div className="message-bubble">
-                  <p>{m.content}</p>
+                  <div
+                    className="message-text"
+                    dangerouslySetInnerHTML={{
+                      __html: (m.content || '')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br />')
+                    }}
+                  />
                   <span className="message-time">{formatTime(m.created_at)}</span>
                 </div>
               </div>
